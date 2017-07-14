@@ -1,0 +1,73 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: balance-svc
+spec:
+  selector:
+    app: balance-api
+    tier: frontend
+  ports:
+    - name: balance-api
+      port: 80
+      targetPort: 3000
+      nodePort: 31001
+  type: NodePort
+
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: balance-dep
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: balance-api-pod
+      labels:
+        app: balance-api
+        tier: frontend
+    spec:
+      containers:
+        - name: balance-api
+          image: swarmgs/balance
+          ports:
+            - containerPort: 3000
+          env:
+            - name: MYWEB_CUSTOMER_API
+              value: "cust-svc"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cust-svc
+spec:
+  selector:
+    app: cust-api
+    tier: backend
+  ports:
+    - name: cust-api
+      port: 3000
+      targetPort: 3000
+  type: ClusterIP
+
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: cust-dep
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: cust-api-pod
+      labels:
+        app: cust-api
+        tier: backend
+    spec:
+      containers:
+        - name: customer-api
+          image: swarmgs/customer
+          ports:
+            - containerPort: 3000

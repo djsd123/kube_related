@@ -1,83 +1,68 @@
 resource "aws_iam_user" "kops_user" {
-  name = "${var.kops_user}"
+  name = "${var.kops_bootstrap_user}"
 }
 
-resource "aws_iam_role" "kops_bootstrap_role" {
-  name = "${var.kops_bootstrap_role}"
-  assume_role_policy = <<EOP
+resource "aws_iam_group" "kops_bootstrap_group" {
+  name = "${var.kops_bootstrap_group}"
+}
+
+resource "aws_iam_group_membership" "kops_bootstrap_membership" {
+  group = "${aws_iam_group.kops_bootstrap_group.name}"
+  name = "${aws_iam_group.kops_bootstrap_group.name}_membership"
+  users = [
+    "${aws_iam_user.kops_user.name}"
+  ]
+}
+
+resource "aws_iam_policy_attachment" "kops_bootstrap_policy_attachment" {
+  name = "kops_bootstrap_policy_attachment"
+  groups = [
+    "${aws_iam_group.kops_bootstrap_group.name}"
+  ]
+  policy_arn = "${aws_iam_policy.kops_bootstrap_policy.arn}"
+}
+/*
+resource "aws_iam_policy_attachment" "assume_role_attachment" {
+  name = "assume_role_policy_attachmnet"
+  policy_arn = "${aws_iam_policy.assume_role_policy.arn}"
+  groups = [
+    "${aws_iam_group.kops_bootstrap_group.name}"
+  ]
+}
+
+resource "aws_iam_policy" "assume_role_policy" {
+  name = "assume_role"
+  policy = <<EOP
 {
   "Version": "2012-10-17",
   "Statement": [
     {
       "Action": "sts:AssumeRole",
-      "Effect": "Allow",
-      "Sid": ""
+      "Effect": "Allow"
     }
   ]
 }
 EOP
 }
+*/
+resource "aws_iam_policy" "kops_bootstrap_policy" {
+  name = "policy-${var.kops_bootstrap_group}"
 
-resource "aws_iam_role_policy" "kops_bootstrap_policy" {
-  name = "kops_bootstrap_policy"
-  role = "${var.kops_bootstrap_role}"
-
-  policy = <<EOF
+  policy = <<EOP
 {
-	"Version": "2012-10-17",
-	"Statement": [{
-			"Effect": "Allow",
-			"Action": "iam:*",
-			"Resource": "*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": [
-				"route53:*",
-				"route53domains:*",
-				"cloudfront:ListDistributions",
-				"elasticloadbalancing:DescribeLoadBalancers",
-				"elasticbeanstalk:DescribeEnvironments",
-				"s3:ListBucket",
-				"s3:GetBucketLocation",
-				"s3:GetBucketWebsiteConfiguration",
-				"ec2:DescribeVpcs",
-				"ec2:DescribeRegions",
-				"sns:ListTopics",
-				"sns:ListSubscriptionsByTopic",
-				"cloudwatch:DescribeAlarms",
-				"cloudwatch:GetMetricStatistics"
-			],
-			"Resource": "*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": "elasticloadbalancing:*",
-			"Resource": "*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": "cloudwatch:*",
-			"Resource": "*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": "autoscaling:*",
-			"Resource": "*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": "s3:*",
-			"Resource": "*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": "ec2:*",
-			"Resource": "*"
-		}
-	]
+    "Version": "2012-10-17",
+    "Statement": {
+        "Effect": "Allow",
+        "Action": [
+            "iam:*",
+            "route53:*",
+            "s3:*",
+            "ec2:*"
+        ],
+        "Resource": "*"
+    }
 }
-EOF
+EOP
 }
 
 terraform {

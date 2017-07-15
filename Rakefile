@@ -2,7 +2,7 @@ require 'colorize'
 require 'fileutils'
 require 'rspec/core/rake_task'
 RSpec::Core::RakeTask.new('spec')
-task :default => ["prerequisites:check_tfjson", "prerequisites:check_for_golang", :spec]
+task :default => ["prerequisites:check_tfjson", "prerequisites:check_for_golang", :spec, :local_state_file_check]
 
 namespace :prerequisites do
   GOLANG_VERSION_REQUIRED = 'go1.8'
@@ -26,6 +26,15 @@ namespace :prerequisites do
       system(command)
       system(command2)
     end
+  end
+end
+
+desc 'Check for local state file'
+task :local_state_file_check do
+  state_file = '.terraform/terraform.tfstate'
+  if File.exist? state_file
+    warn "A local state file (#{state_file}) should not exist. We use remote state files"
+    exit 1
   end
 end
 

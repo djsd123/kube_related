@@ -1,0 +1,18 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: cowsay
+spec:
+  backend: #Default backend
+    serviceName: balance-svc
+    servicePort: balance-api
+  rules:
+    - host: cowsay.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: cow-svc
+              servicePort: cow-port
+# minikube addons enable ingress
+# curl $(minikube ip) -H 'Host: cowsay.com'

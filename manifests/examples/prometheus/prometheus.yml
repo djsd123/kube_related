@@ -1,0 +1,71 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    k8s-app: prometheus-operator
+  name: prometheus-operator
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        k8s-app: prometheus-operator
+    spec:
+      containers:
+      - args:
+        - --kubelet-service=kube-system/kubelet
+        - --config-reloader-image=quay.io/coreos/configmap-reload:v0.0.1
+        image: quay.io/coreos/prometheus-operator:v0.14.1
+        name: prometheus-operator
+        ports:
+        - containerPort: 8080
+          name: http
+        resources:
+          limits:
+            cpu: 200m
+            memory: 100Mi
+          requests:
+            cpu: 100m
+            memory: 50Mi
+      serviceAccountName: prometheus-operator
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: prometheus.dti.nuk-kube-dev.ntch.co.uk.
+spec:
+  selector:
+    prometheus: prometheus
+  ports:
+    - name: web
+      port: 443
+      protocol: TCP
+      targetPort: 9090
+  type: NodePort
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: prometheus
+  namespace: kube-system
+  annotations:
+    kubernetes.io/ingress.class: "alb"
+    alb.ingress.kubernetes.io/port: "443"
+    alb.ingress.kubernetes.io/subnets: subnet-a74815ee,subnet-682abe33,subnet-f3602b94
+    alb.ingress.kubernetes.io/security-groups: sg-8d6e96f6  # node security groups
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    external-dns.alpha.kubernetes.io/hostname: prometheus.dti.nuk-kube-dev.ntch.co.uk.
+    alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:eu-west-1:540909713637:certificate/f0d770c9-f155-4ddd-9559-e63617c6d9e0"
+spec:
+  rules:
+    - host: prometheus.dti.nuk-kube-dev.ntch.co.uk
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: prometheus
+              servicePort: 443

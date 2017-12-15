@@ -1,0 +1,15 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ubuntu-release
+spec:
+  template:
+    metadata:
+      name: ubuntu-release
+    spec:
+      containers:
+        - name: ubuntu-release
+          image: ubuntu
+          command: ["lsb_release", "-a"]
+      restartPolicy: Never

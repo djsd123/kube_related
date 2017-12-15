@@ -1,0 +1,46 @@
+---
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: kibana
+  namespace: kube-system
+  annotations:
+    kubernetes.io/ingress.class: "alb"
+    alb.ingress.kubernetes.io/port: "443"
+    alb.ingress.kubernetes.io/subnets: subnet-a74815ee,subnet-682abe33,subnet-f3602b94
+    alb.ingress.kubernetes.io/security-groups: sg-8d6e96f6  # node security groups
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    external-dns.alpha.kubernetes.io/hostname: kibana.dti.nuk-kube-dev.ntch.co.uk.
+    alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:eu-west-1:540909713637:certificate/f0d770c9-f155-4ddd-9559-e63617c6d9e0"
+spec:
+  rules:
+    - host: kibana.dti.nuk-kube-dev.ntch.co.uk
+      http:
+        paths:
+          - backend:
+              serviceName: kibana-logging
+              servicePort: 443
+            path: /
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana-logging
+  namespace: kube-system
+  labels:
+    k8s-app: kibana-logging
+    kubernetes.io/cluster-service: "true"
+    addonmanager.kubernetes.io/mode: Reconcile
+    kubernetes.io/name: "Kibana"
+spec:
+  ports:
+  - name: kibana-logging-port
+    port: 443
+    protocol: TCP
+    targetPort: 5601
+  selector:
+    k8s-app: kibana-logging
+  type: NodePort

@@ -65,9 +65,11 @@ resource "aws_iam_policy" "kops_bootstrap_policy" {
 EOP
 }
 
+/*
 terraform {
   backend "s3" {
     bucket = "plat1.kube.mcallison.uk"
     key    = "kops/tfstate"
   }
 }
+*/

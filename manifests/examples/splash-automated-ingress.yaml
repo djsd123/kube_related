@@ -1,0 +1,24 @@
+---
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: splash-automated
+  namespace: default
+  annotations:
+    kubernetes.io/ingress.class: "scratch-alb"
+    alb.ingress.kubernetes.io/port: "443"
+    alb.ingress.kubernetes.io/subnets: subnet-18afc67f,subnet-60d86d3b,subnet-7356263a
+    alb.ingress.kubernetes.io/security-groups: sg-c49faabc
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    external-dns.alpha.kubernetes.io/hostname: splash-automated.mallison.nuk-kube-dev.ntch.co.uk.
+    alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:eu-west-1:540909713637:certificate/f0d770c9-f155-4ddd-9559-e63617c6d9e0"
+spec:
+  rules:
+    - host: splash-automated.mallison.nuk-kube-dev.ntch.co.uk
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: autonewsplash-dev
+              servicePort: 443

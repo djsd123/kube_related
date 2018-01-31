@@ -10,6 +10,6 @@ spec:
     spec:
       containers:
         - name: ubuntu-release
-          image: ubuntu
-          command: ["lsb_release", "-a"]
+          image: ubuntu:14.04
+          command: ["/usr/bin/lsb_release", "-a"]
       restartPolicy: Never
